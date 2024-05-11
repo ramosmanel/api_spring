@@ -8,12 +8,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 public class ProductController {
@@ -30,5 +28,14 @@ public class ProductController {
     @GetMapping("/products")
     public ResponseEntity<List<ProductModel>> getAllProducts() {
         return ResponseEntity.status(HttpStatus.OK).body(productRepository.findAll());
+    }
+
+    @GetMapping("/products/{id}")
+    // Object type since the request can receive more than one response
+    public ResponseEntity<Object> getOneProduct(@PathVariable(value = "id") UUID id) {
+        Optional<ProductModel> productOptional = productRepository.findById(id); //Select Where in database
+        return productOptional.<ResponseEntity<Object>>
+                        map(productModel -> ResponseEntity.status(HttpStatus.OK).body(productModel))
+                        .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found."));
     }
 }
